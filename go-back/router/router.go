@@ -3,6 +3,7 @@ package router
 import (
 	"github.com/gin-gonic/gin"
 	"go-back/controller"
+	"go-back/core"
 	"go-back/utils"
 	"log"
 	"net/http"
@@ -10,7 +11,8 @@ import (
 
 func Start() {
 	r := gin.Default()
-
+	server := core.NewServer()
+	go server.Run()
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "ping",
@@ -24,6 +26,9 @@ func Start() {
 	r.POST("/add-friend", utils.JWTMiddleware(), controller.DoAddFriend)
 	r.POST("/get-friends", utils.JWTMiddleware(), controller.GetFriendList)
 	r.POST("/search-friend", utils.JWTMiddleware(), controller.SearchFriend)
+	r.GET("/ws", func(context *gin.Context) {
+		core.ServeWs(server, context)
+	})
 	err := r.Run()
 	if err != nil {
 		log.Println("======================>>启动失败")
